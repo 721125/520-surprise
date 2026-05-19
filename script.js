@@ -357,6 +357,7 @@ function tick() {
 function startShow() {
   if (running) return;
   running = true;
+  document.body.classList.add("showtime");
   startButton.disabled = true;
   startButton.textContent = "烟花已点亮";
   powerFill.style.width = "100%";

@@ -221,6 +221,7 @@ body::before {
   width: 100vw;
   height: 100vh;
   z-index: 1;
+  pointer-events: none;
 }
 
 .game-shell {
@@ -244,6 +245,25 @@ body::before {
     8px 8px 0 0 rgba(0, 0, 0, 0.52);
   text-align: center;
   image-rendering: pixelated;
+  transition: opacity 0.7s ease, filter 0.7s ease, transform 0.7s ease;
+}
+
+body.showtime .game-shell {
+  z-index: 1;
+}
+
+body.showtime #fireworks {
+  z-index: 3;
+}
+
+body.showtime .stage {
+  opacity: 0.32;
+  filter: saturate(0.58) brightness(0.82);
+  transform: scale(0.97);
+}
+
+body.showtime .stage:hover {
+  opacity: 0.52;
 }
 
 .level {
