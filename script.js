@@ -133,14 +133,7 @@ function updateFlashes() {
 }
 
 function drawBackground() {
-  ctx.fillStyle = "rgba(8, 7, 13, 0.24)";
-  ctx.fillRect(0, 0, w, h);
-
-  const glow = ctx.createLinearGradient(0, 0, 0, h);
-  glow.addColorStop(0, "rgba(255,255,255,0.025)");
-  glow.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, w, h);
+  ctx.clearRect(0, 0, w, h);
 }
 
 function drawFlashes() {
