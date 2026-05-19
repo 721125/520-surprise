@@ -2,6 +2,7 @@ const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 const startButton = document.getElementById("startButton");
 const powerFill = document.getElementById("powerFill");
+const soundToggle = document.getElementById("soundToggle");
 
 let w = 0;
 let h = 0;
@@ -13,6 +14,18 @@ let fountains = [];
 let running = false;
 let launchTimer = 0;
 let burstIndex = 0;
+let audioCtx = null;
+let masterGain = null;
+let musicTimer = 0;
+let muted = false;
+let musicStep = 0;
+
+const melody = [
+  523.25, 659.25, 783.99, 659.25,
+  587.33, 698.46, 880.00, 698.46,
+  659.25, 783.99, 987.77, 783.99,
+  698.46, 659.25, 587.33, 523.25,
+];
 
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -27,6 +40,86 @@ function resize() {
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+function initAudio() {
+  if (audioCtx) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  audioCtx = new AudioContext();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = muted ? 0 : 0.22;
+  masterGain.connect(audioCtx.destination);
+}
+
+function setMuted(nextMuted) {
+  muted = nextMuted;
+  soundToggle.classList.toggle("is-muted", muted);
+  soundToggle.textContent = muted ? "×" : "♪";
+  if (masterGain) {
+    masterGain.gain.setTargetAtTime(muted ? 0 : 0.22, audioCtx.currentTime, 0.04);
+  }
+}
+
+function playTone(freq, start, duration, volume = 0.08, type = "square") {
+  if (!audioCtx || !masterGain || muted) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(volume, start + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(start);
+  osc.stop(start + duration + 0.02);
+}
+
+function startMusic() {
+  initAudio();
+  if (!audioCtx || musicTimer) return;
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+  musicTimer = window.setInterval(() => {
+    const now = audioCtx.currentTime;
+    const note = melody[musicStep % melody.length];
+    const bass = melody[(musicStep + 12) % melody.length] / 2;
+    playTone(note, now, 0.16, 0.045, "square");
+    if (musicStep % 2 === 0) {
+      playTone(bass, now, 0.22, 0.03, "triangle");
+    }
+    musicStep += 1;
+  }, 260);
+}
+
+function playExplosionSound(scale = 1) {
+  if (!audioCtx || !masterGain || muted) return;
+  const now = audioCtx.currentTime;
+  playTone(rand(90, 140), now, 0.12, 0.08 * scale, "sawtooth");
+  playTone(rand(220, 360), now + 0.035, 0.08, 0.035 * scale, "square");
+
+  const noise = audioCtx.createBufferSource();
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.18, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  }
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.055 * scale, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+  noise.buffer = buffer;
+  noise.connect(gain);
+  gain.connect(masterGain);
+  noise.start(now);
+}
+
+function playFountainSound() {
+  if (!audioCtx || muted) return;
+  const now = audioCtx.currentTime;
+  playTone(rand(520, 760), now, 0.06, 0.025, "square");
 }
 
 function hue() {
@@ -80,6 +173,7 @@ function burst(x, y, color, scale = 1) {
 function shapedBurst(x, y, color, scale = 1, type = "circle") {
   const count = Math.floor(rand(58, 88) * scale);
   flashes.push({ x, y, radius: 8, alpha: 0.1, color });
+  playExplosionSound(Math.min(1.15, scale));
 
   if (type === "heart") {
     heartBurst(x, y, scale);
@@ -208,6 +302,7 @@ function text520Burst() {
 }
 
 function launchFountain() {
+  playFountainSound();
   const left = w * 0.18;
   const right = w * 0.82;
   for (let i = 0; i < 10; i += 1) {
@@ -358,6 +453,7 @@ function startShow() {
   if (running) return;
   running = true;
   document.body.classList.add("showtime");
+  startMusic();
   startButton.disabled = true;
   startButton.textContent = "烟花已点亮";
   powerFill.style.width = "100%";
@@ -380,6 +476,10 @@ function startShow() {
 
 window.addEventListener("resize", resize);
 startButton.addEventListener("click", startShow);
+soundToggle.addEventListener("click", () => {
+  initAudio();
+  setMuted(!muted);
+});
 
 resize();
 ctx.clearRect(0, 0, w, h);
