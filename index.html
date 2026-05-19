@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>臭胖胖的520惊喜</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="fireworks" aria-hidden="true"></canvas>
+
+  <main class="game-shell">
+    <section class="hud" aria-label="520惊喜游戏状态">
+      <div class="hud-item">
+        <span class="hud-label">PLAYER</span>
+        <strong>臭胖胖</strong>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">MISSION</span>
+        <strong>520快乐</strong>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">LOVE</span>
+        <strong id="loveScore">0%</strong>
+      </div>
+    </section>
+
+    <section class="stage" aria-labelledby="title">
+      <p class="level">LEVEL 520</p>
+      <h1 id="title">臭胖胖，520快乐</h1>
+
+      <button class="start-button" id="startButton" type="button">
+        <span class="button-icon">▶</span>
+        开始惊喜
+      </button>
+
+      <div class="power-bar" aria-label="惊喜能量">
+        <span id="powerFill"></span>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
