@@ -2,7 +2,6 @@ const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 const startButton = document.getElementById("startButton");
 const powerFill = document.getElementById("powerFill");
-const loveScore = document.getElementById("loveScore");
 
 let w = 0;
 let h = 0;
@@ -29,7 +28,7 @@ function rand(min, max) {
 }
 
 function hue() {
-  const palette = ["#ff5f9e", "#ffd166", "#54f0ff", "#87ffb1", "#a78bfa", "#ff8a4c"];
+  const palette = ["#d95786", "#d9ad49", "#4aa0b3", "#69b978", "#8e72c7", "#d87948"];
   return palette[(Math.random() * palette.length) | 0];
 }
 
@@ -59,16 +58,16 @@ function addSpark(x, y, vx, vy, color, size, life, decay) {
 }
 
 function burst(x, y, color, scale = 1) {
-  const count = Math.floor(rand(92, 145) * scale);
-  flashes.push({ x, y, radius: 8, alpha: 0.34, color });
+  const count = Math.floor(rand(58, 88) * scale);
+  flashes.push({ x, y, radius: 8, alpha: 0.1, color });
 
   for (let i = 0; i < count; i += 1) {
     const angle = (Math.PI * 2 * i) / count + rand(-0.08, 0.08);
-    const speed = rand(2.4, 8.8) * scale;
-    addSpark(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, rand(1.6, 3.8), rand(70, 112), rand(0.01, 0.019));
+    const speed = rand(1.8, 6.2) * scale;
+    addSpark(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, rand(3, 5), rand(48, 78), rand(0.018, 0.03));
   }
 
-  for (let i = 0; i < Math.floor(18 * scale); i += 1) {
+  for (let i = 0; i < Math.floor(8 * scale); i += 1) {
     window.setTimeout(() => {
       const angle = rand(0, Math.PI * 2);
       const distance = rand(24, 82) * scale;
@@ -78,11 +77,11 @@ function burst(x, y, color, scale = 1) {
 }
 
 function miniBurst(x, y, color) {
-  const count = Math.floor(rand(22, 34));
+  const count = Math.floor(rand(12, 20));
   for (let i = 0; i < count; i += 1) {
     const angle = (Math.PI * 2 * i) / count;
-    const speed = rand(1.1, 3.8);
-    addSpark(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, rand(1, 2.1), rand(38, 66), rand(0.018, 0.032));
+    const speed = rand(0.8, 2.6);
+    addSpark(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, rand(2, 4), rand(28, 48), rand(0.026, 0.04));
   }
 }
 
@@ -93,9 +92,9 @@ function finaleVolley() {
   });
 
   window.setTimeout(() => {
-    burst(w * 0.5, h * 0.32, "#ffd166", 1.55);
-    burst(w * 0.28, h * 0.25, "#ff5f9e", 1.15);
-    burst(w * 0.72, h * 0.25, "#54f0ff", 1.15);
+    burst(w * 0.5, h * 0.32, "#d9ad49", 1.25);
+    burst(w * 0.28, h * 0.25, "#d95786", 0.95);
+    burst(w * 0.72, h * 0.25, "#4aa0b3", 0.95);
   }, 880);
 }
 
@@ -104,7 +103,7 @@ function updateRockets() {
     rocket.x += rocket.vx;
     rocket.y += rocket.vy;
     rocket.vy += 0.045;
-    addSpark(rocket.x, rocket.y + 8, rand(-0.35, 0.35), rand(0.7, 1.8), rocket.color, rand(0.8, 1.5), rand(16, 28), 0.04);
+    addSpark(rocket.x, rocket.y + 8, rand(-0.2, 0.2), rand(0.5, 1.2), rocket.color, rand(2, 3), rand(10, 20), 0.06);
     if (rocket.y <= rocket.targetY || rocket.vy >= -1.2) {
       burst(rocket.x, rocket.y, rocket.color, rand(0.82, 1.2));
       return false;
@@ -134,11 +133,11 @@ function updateFlashes() {
 }
 
 function drawBackground() {
-  ctx.fillStyle = "rgba(4, 6, 16, 0.16)";
+  ctx.fillStyle = "rgba(8, 7, 13, 0.24)";
   ctx.fillRect(0, 0, w, h);
 
   const glow = ctx.createLinearGradient(0, 0, 0, h);
-  glow.addColorStop(0, "rgba(255,255,255,0.06)");
+  glow.addColorStop(0, "rgba(255,255,255,0.025)");
   glow.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, w, h);
@@ -146,7 +145,6 @@ function drawBackground() {
 
 function drawFlashes() {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
   for (const flash of flashes) {
     const gradient = ctx.createRadialGradient(flash.x, flash.y, 0, flash.x, flash.y, flash.radius);
     gradient.addColorStop(0, hexToRgba(flash.color, flash.alpha));
@@ -161,33 +159,29 @@ function drawFlashes() {
 
 function drawRockets() {
   for (const rocket of rockets) {
-    ctx.beginPath();
     ctx.fillStyle = rocket.color;
-    ctx.arc(rocket.x, rocket.y, 2.8, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(Math.round(rocket.x / 4) * 4, Math.round(rocket.y / 4) * 4, 5, 5);
   }
 }
 
 function drawParticles() {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
   for (const p of particles) {
-    ctx.beginPath();
-    ctx.fillStyle = hexToRgba(p.color, p.alpha);
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = hexToRgba(p.color, p.alpha * 0.72);
+    const size = Math.max(2, Math.round(p.size));
+    ctx.fillRect(Math.round(p.x / 3) * 3, Math.round(p.y / 3) * 3, size, size);
   }
   ctx.restore();
 }
 
 function hexToRgba(color, alpha) {
   const map = {
-    "#ff5f9e": [255, 95, 158],
-    "#ffd166": [255, 209, 102],
-    "#54f0ff": [84, 240, 255],
-    "#87ffb1": [135, 255, 177],
-    "#a78bfa": [167, 139, 250],
-    "#ff8a4c": [255, 138, 76],
+    "#d95786": [217, 87, 134],
+    "#d9ad49": [217, 173, 73],
+    "#4aa0b3": [74, 160, 179],
+    "#69b978": [105, 185, 120],
+    "#8e72c7": [142, 114, 199],
+    "#d87948": [216, 121, 72],
   };
   const [r, g, b] = map[color] || [255, 255, 255];
   return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, alpha))})`;
@@ -210,7 +204,6 @@ function startShow() {
   startButton.disabled = true;
   startButton.textContent = "烟花已点亮";
   powerFill.style.width = "100%";
-  loveScore.textContent = "100%";
 
   finaleVolley();
 
